@@ -1,0 +1,114 @@
+<html >
+<head>
+<title>FACT Quick Look Analysis</title>
+
+  <meta name="Author" content="Leonie Reichert" />
+  <!--For automatic scaling of Website-->	
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+ 
+  <!--language and alphabet-->
+  <meta http-equiv="Content-Language" content="en,ge">
+  <meta charset="UTF-8">
+
+  <!--Layout-->
+  <link rel="stylesheet" href="stylesheets/style.css" type="text/css">
+
+   
+<body>
+
+<header>
+
+
+   <!--Important Links to FACt Forum and Uni Wü, Astronomy main page-->
+    <div><div> <a href ="http://www.fact-project.org">FACT Forum</a> <a href="http://www.astro.uni-wuerzburg.de/en?set_language">Astronomy Würzburg</a> </div><div>
+  </nav>
+  <h1>Q<span>uick</span>L<span>ook</span>A<span>nalysis</span></h1>
+  <span>FACT Telescope</span> </header>
+
+<!--Horizontal Menu creating tab like behaviour by displaying hidden sections and hiding othe ones-->
+<nav>
+<div id="menucase">
+  <div id="menu_horizontal">
+    <ul>
+      <li><a href="#" onclick="opentab('policy')" >Data Usage Policy</a></li>
+      <li><a href="#" onclick="opentab('license')" >License</a></li>
+      <li><a href="#" onclick="opentab('contact')" >Contact</a></li>
+      
+    </ul>
+  </div>
+</div>
+</nav>
+
+<!--MAIN TAB: Display of the menu, plot, mailing function and SQL Query-->
+
+<section  >
+	 <div id="policy" class="tab" style="text-indent:10px;">
+		<h3> Data Usage Policy </h3>
+	
+	  </div>
+ 
+</section>
+
+
+<!--Display of the global license file-->
+<section  >
+  
+	<div id="license" class="tab" style="text-indent:10px;" ></br>
+		<h2> License </h2>
+	
+		<!--pre makes sure that /n in texts gets interpreted as new line-->
+		<p>
+		<pre>
+			<?php 
+				include "license_file.php";
+				echo license();
+			 ?>
+ 		</pre>
+		</p>
+	
+	  </div>
+  
+</section>
+
+<!--Contact tab with obscurefied mail addressed, with picture of FACT Logo-->
+<section  >
+  
+	<div id="contact" class="tab" style="text-indent:10px;" ></br>
+		<h2> Contact </h2>
+
+		<p>
+		At University of Würzburg, Chair for Astronomy: </br>
+		Dr. Daniela Dorner 
+		 <i>
+		 <span class="obfuscated" name="renrod" domain="ed.grubzreuw-inu"></span>
+		 </i></br>
+		 </p>
+		 <p>
+		Feedback concerning the Website and Bugreports: </br>
+		Leonie Reichert
+
+		<i>	<span class="obfuscated" name="trehcier.einoel" domain="ed.grubzreuw-inu.liam-duts"></span> </i>
+		 </p>
+		<center>
+
+	</center>
+		
+	  </div>
+  
+</section>
+
+
+
+<footer>
+  <center>
+<p>&copy; Copyright 2016 - fact-project.org  </p>
+<p>This Website was optimized for Firefox.</p>
+</center>
+
+
+</footer>
+<!-- script for Mainpage functions like tabs. DO NOT MOVE! -->
+<script src="scripts/page_behavior.js"></script>
+
+</body>
+</html>

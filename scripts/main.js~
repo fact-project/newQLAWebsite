@@ -1,0 +1,33 @@
+
+opentab("plots")
+function opentab(tabname) {
+   var i;
+    var x = document.getElementsByClassName("tab");
+    for (i = 0; i < x.length; i++) {
+       x[i].style.display = "none";  	
+    }
+    document.getElementById(tabname).style.display = "block";  
+};
+
+//chechs for input in Textfield with Id 'id'
+function validateInput(id){ 
+	var element=document.getElementById(id);
+
+	if(element.value ==''){
+		
+		alert('Field is requiered!');	
+		return false;
+		
+	}
+}
+
+function login(showhide){
+if(showhide == "show"){
+    document.getElementById('popupbox').style.visibility="visible";
+}else if(showhide == "hide"){
+    document.getElementById('popupbox').style.visibility="hidden"; 
+}
+};
+
+
+

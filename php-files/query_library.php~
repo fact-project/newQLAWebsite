@@ -1,0 +1,241 @@
+
+<?php
+
+/*gets sources with additional information. Used for displaying sources in select menu, 
+for Seasonal binning and to get the name for a source in the SQL Data array so it can be displayed in the plot*/
+function query1(){
+	$query1 = <<<EOT
+		SELECT
+   			fSourceKEY AS k,
+   			fSourceName AS name,
+   			fRightAscension AS ra
+		FROM Source
+		WHERE fSourceTypeKey=1
+		ORDER BY k
+
+
+EOT;
+	return $query1;
+
+} 
+
+//to get all collums in the tables. It can be used for autocomplete. (Not implemented)
+ function query2($database, $table){
+
+	$query2 = <<<EOT
+		SELECT
+  			COLUMN_NAME
+		FROM
+  	 		INFORMATION_SCHEMA.COLUMNS
+		WHERE
+  	 		TABLE_SCHEMA='$database' AND
+ 	  		TABLE_NAME in ('RunInfo','AnalysisResultsRun$table') 
+		GROUP BY
+  			COLUMN_NAME
+		ORDER BY
+  	 		COLUMN_NAME
+
+EOT;
+	return $query2;
+}
+
+/*This query is used for normal inquieries without 
+any special time binning. It is similar to  the Database Explorer query */
+function query3($selectx, $selecty, $selecterr, $table, $sqlbegin, $sqlend,
+ $isnull, $good, $sqlcut, $mintime, $sqlhaving, $sourcekey, $groupbyX, 
+$groupbyY, $sqlLimit){
+
+	$query3 = <<<EOT
+
+SELECT
+    ($selectx) AS x,
+    ($selecty) AS y,
+    ($selecterr) AS e,
+    (LIMA(SUM(fNumSigEvts), SUM(fNumBgEvts))) AS s,
+    (SUM(fOnTimeAfterCuts)/60) AS ontime,
+    (MIN(fRunStart)) as start,
+    (MAX(fRunStop)) as stop,
+    (MIN(fZenithDistanceMin)) as zdmin,
+    (MAX(fZenithDistanceMax)) as zdmax,
+    (MIN(fAzimuthMin)) as azmin,
+    (MAX(fAzimuthMax)) as azmax,
+    (MIN(fThresholdMinSet)) as thmin,
+    (MAX(fThresholdMax)) as thmax
+FROM RunInfo
+LEFT JOIN AnalysisResultsRun$table USING(fNight,fRunID)
+WHERE
+    fRunTypeKey=1 AND fSourceKey=$sourcekey
+    $sqlbegin $sqlend
+    $isnull
+    $good
+    $sqlcut
+    $sqlLimit
+GROUP BY $groupbyX $groupbyY
+HAVING
+    (ontime>$mintime)
+    $sqlhaving
+
+EOT;
+
+return $query3;
+
+}
+
+
+/* This query is used for time binning of less than 1440 min
+ which is equal to less than a day. It was taken from the Send_Data.sh 
+and was combined with the Database explorer Statement*/
+function query4($selectx, $selecty, $selecterr, $table, $sqlbegin, $sqlend, $isnull,
+ $good, $sqlcut, $mintime, $sqlhaving, $sourcekey, $groupbyX, $groupbyY, $bin, $sqlLimit){
+
+
+$query4=<<<EOT
+SELECT 
+($selectx) AS x,
+($selecty) AS y,
+($selecterr) AS e,
+
+
+(LIMA(SUM(fNumSigEvts), SUM(fNumBgEvts))) AS s, 
+  (SUM(fOnTimeAfterCuts)/60) AS ontime,
+MIN(fRunStart) AS start, 
+MAX(fRunStop) as stop,
+(MIN(fZenithDistanceMin)) as zdmin, 
+(MAX(fZenithDistanceMax)) as zdmax, 
+(MIN(fAzimuthMin)) as azmin, 
+(MAX(fAzimuthMax)) as azmax, 
+(MIN(fThresholdMinSet)) as thmin, 
+(MAX(fThresholdMax)) as thmax
+
+
+
+   FROM (
+
+    SELECT fNight, 
+    @ot:= IF(ISNULL(fEffectiveOn), fOnTimeAfterCuts, TIME_TO_SEC(TIMEDIFF(fRunStop,fRunStart))*fEffectiveOn) AS ot,
+    fEffectiveOn,
+    fNumExcEvts,
+    fZenithDistanceMin , 
+    fZenithDistanceMax ,
+    fZenithDistanceMean,
+    fAzimuthMin ,
+    fAzimuthMax ,
+    fThresholdMinSet  ,
+    fThresholdMax,
+    fThresholdAvgMean,
+    fOnTimeAfterCuts, 
+    fRunStart, 
+    fRunStop, 
+    fNumSigEvts, 
+    fNumBgEvts, 
+    fRightAscension,
+    IF (@night=fNight AND FLOOR((@os+@ot)/$bin./60.)<1, @bl, @bl := @bl + 1) AS block, 
+    IF (@night=fNight AND FLOOR((@os+@ot)/$bin./60.)<1, @os:=@os + @ot, @os := @ot) AS os, 
+    @night :=fNight AS night 
+
+    FROM RunInfo LEFT JOIN AnalysisResultsRun$table
+    USING (fNight, fRunID) 
+    CROSS JOIN (SELECT @night :=0, @ot :=0, @os :=0, @bl:=0) PARAMS
+
+    WHERE
+        fRunTypeKey=1 AND fSourceKey=$sourcekey
+        $sqlbegin $sqlend
+        $isnull
+        $good
+        $sqlcut
+	    $sqlLimit
+      ORDER BY fRunStart) o 
+
+      GROUP BY block $groupbyX $groupbyY
+      HAVING 
+        (ontime>$mintime)
+        $sqlhaving
+      ORDER BY start
+
+
+EOT;
+
+
+return $query4;
+}
+
+
+
+
+/*This query is used when the user selects a Time bin bigger than 1440 min (1 day) 
+A limit is defined which is x day bigger than the inital @night. The nights  
+between the limit and the start night are then combined */
+function query5($selectx, $selecty, $selecterr, $table, $sqlbegin, $sqlend, $isnull,
+ $good, $sqlcut, $mintime, $sqlhaving, $sourcekey, $groupbyX, $groupbyY, $bin,$sqlLimit){
+
+
+
+$query5=<<<EOT
+SELECT 
+($selectx) AS x,
+($selecty) AS y,
+($selecterr) AS e,
+
+(LIMA(SUM(fNumSigEvts), SUM(fNumBgEvts))) AS s, 
+
+sum(fOnTimeAfterCuts/60) as ontime,
+MIN(fRunStart) AS start, 
+MAX(fRunStop) as stop,
+(MIN(fZenithDistanceMin)) as zdmin, 
+(MAX(fZenithDistanceMax)) as zdmax, 
+(MIN(fAzimuthMin)) as azmin, 
+(MAX(fAzimuthMax)) as azmax, 
+(MIN(fThresholdMinSet)) as thmin, 
+(MAX(fThresholdMax)) as thmax
+
+   FROM (
+
+    SELECT 
+    fNight, 
+    fEffectiveOn, 
+    fNumExcEvts,
+    fZenithDistanceMin , 
+    fZenithDistanceMax ,
+    fZenithDistanceMean,
+    fAzimuthMin ,
+    fAzimuthMax ,
+    fThresholdMinSet  ,
+    fThresholdMax,
+    fThresholdAvgMean,
+    fOnTimeAfterCuts, 
+    fRunStart, 
+    fRunStop, 
+    fNumSigEvts, 
+    fNumBgEvts,      
+       
+    IF (fNight<=DATE_ADD(@night,INTERVAL ROUND($bin/60/24) DAY), @night, @night:=fNight) as night, 
+
+    @limit:=DATE_ADD(@night,INTERVAL ROUND($bin/60/24) DAY) as lim
+       
+    FROM RunInfo  LEFT JOIN AnalysisResultsRunISDC
+    USING (fNight, fRunID) 
+    CROSS JOIN (SELECT @night :=0, @limit:=0) PARAMS
+
+    WHERE
+        fRunTypeKey=1 AND fSourceKey=$sourcekey
+	$sqlbegin $sqlend
+        $isnull
+        $good
+        $sqlcut
+	$sqlLimit
+      ORDER BY fRunStart) o 
+		
+      Group by lim
+      HAVING 
+        (ontime>1)
+        $sqlhaving
+      ORDER BY start
+
+EOT;
+
+return $query5;
+
+}
+
+
+?>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Chart Menu</title>
+
+	<!--- includes for multiselect dropdown menu with checkboxes -->
+	<link href="multiselectmenu_with_checkbox/jquery.multiselect.css" rel="stylesheet" type="text/css">
+	<style>
+		ul,li { margin:0; padding:0; list-style:none;}
+		.label { color:#000; font-size:16px;}
+	</style> 
+	<script src="multiselectmenu_with_checkbox/jquery.multiselect.js"></script>
+
+	<!-- includes for chart menu in general  -->
+	<link rel="stylesheet" href="jquery-ui-1.12.1.custom/jquery-ui.min.css">
+	 <script src="jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="scripts/chart_menu.js"></script>
+	<script type="text/javascript">
+			$(function()
+		{
+			$("form").form();
+		});
+	</script>
+
+	         <!-- for plot-->
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   <script type="text/javascript" src="scripts/plot.js"></script>
+
+
+
+</head>
+<body>
+	<div style="text-indent:10px;" id="container">
+		<h3>Chart menu</h3>
+
+		<!-- Form will be send when clicking on update
+		The update Button calls function sendInBackground() in Scpipt file -->		
+		<form action="#"  method="post" id="form">
+		<!--This creats bottons, dopdown menus and checkboxes for the menu of the plot  -->
+			
+			<p>
+				<label for="enable_beg">From</label>
+				<input type="checkbox" id="enable_beg" title="Enable a lower date limit">
+				<input type="text" class="date" id="date_beg" name="date_beg" />
+
+		   		 <label for="enable_end">To</label>
+   				 <input type="checkbox" id="enable_end" title="Enable an upper date limit">
+				<input type="text" class="date" id="date_end" name="date_end" />
+			</p>
+
+			<p>
+			    <label for="sources">Sources</label>
+
+			    <select name="sources[]" multiple id="sources">
+
+			      <optgroup label="Sources">
+			      	<?php 
+			      	 include 'php-files/database_functions.php'; 
+			  		connect_database();
+			  		$sourceoptions = get_sourceoptions();
+			      	 echo $sourceoptions; ?>
+			      </optgroup>
+			    </select>
+			</p>
+
+			<p>
+				
+ 				<label for="x">Select X-Axis</label>
+				<select name="x" id="x">
+				    <option value="time">Time</option>
+				  	<option value="excess_rate">Excess Rate</option>
+				  	<option value="background_rate">Background Rate</option>
+				  	<option value="zenit_distance">Zenit Distance</option>
+				  	<option value="threshold">Threshold</option>
+				  	<option value="significance">Significance</option>
+
+				</select>
+	
+			    <label for="y">Select Y-Axis</label>		
+			    <select name="y" id="y">
+				  	<option value="excess_rate">Excess Rate</option>
+				  	<option alue="background_rate">Background Rate</option>
+				  	<option value="zenit_distance">Zenit Distance</option>
+				  	<option value="threshold">Threshold</option>
+				  	<option value="significance">Significance</option>
+				</select>
+			</p>
+			<div name="time_menu" id="time_menu">
+
+				<p>
+				    <label for="time_binning">Time Binning</label>
+				    <select name="time_binning" id="time_binning">
+				    <!--  Values are in minutes-->
+				        <option value='select' hidden>Select option</option>
+				        <option value='None' hidden></option>
+				        <option value="20min">20min</option>
+				      	<option value="night">1night</option>
+				      	<option value="month">1month</option>
+				      	<option value="year">1year</option>
+				    	<option value="season" hidden>1 Season (only for single Sources)</option>
+
+				    </select>
+
+				     <label for="offset" title="Normally binning starts at 0. This allows an artificial shift of the bins.">Bin Shift in Days:</label>
+				    <input type="number" id="offset" name="offset" min="0" style="width:2em">
+
+				</p>
+
+				<p>
+				    <label for="free_time_binning">Manual Time Binning </label>
+				    <input type="checkbox" id="enable_time_binning" name="enable_time_binning" title="Enable free Time Binning">
+
+				    <label for="free_time_binning_years">Years: </label>
+				    <input type="number" name="free_time_binning_years" min="0" id="free_time_binning_years" style="width:2em">
+
+				    <label for="free_time_binning_months">Months </label>
+				   	<input type="number" name="free_time_binning_months" min="0"  id="free_time_binning_months" style="width:2em">
+
+				   	<label for="free_time_binning_days">Days</label>
+				   	<input type="number" name="free_time_binning_days" min="0" id="free_time_binning_days" style="width:2em">
+
+				   	<label for="free_time_binning_minutes">Minutes</label>
+				   	<input type="number" name="free_time_binning_minutes" min="0" id="free_time_binning_minutes" style="width:2em">
+				 </p>
+			  </div>
+			  <p>
+
+			    <label for="enable_bin_width" title="Width of the range in which data is grouped together, for other binning than time binning.">Bin Width </label>
+			    <input type="checkbox" id="enable_bin_width" name="enable_bin_width" title="Enable Bin Width">
+			    <input type="number" id="bin_width" name="bin_width" min="1" style="width:2em">
+
+			    <label for="usedTable">Using Table: </label>
+			    <select name="usedTable" id="usedTable">
+			        <option value="LP" selected >LaPalma</option>
+			        <option value="ISDC">ISDC</option>
+	
+			    </select>
+			 </p>
+
+			 <p>
+			    <label for="nohist">No Histogramm:</label>
+			    <input type="checkbox" id="nohist" name ="nohist" title="Disable display as histogram">
+
+			    <label for="noerr">No Errors:</label>
+			    <input type="checkbox" id="noerr" name="noerr" title="Disable error bars">
+
+			    <label for="data_check">Data Check: </label>
+			    <select id="good" name="good" title="Enable Data Check / Good Data">
+			    	<option value="0" selected> </option>
+			    	<option value="1"> 1</option>
+			    	<option value="2"> 2</option>
+			    	<option value="4"> 4</option>
+			    	<option value="8"> 8</option>
+			    </select> 
+
+
+
+			</p>
+				
+			<p>
+				<label for="cut">Cut</label>
+				<input type="text" name="cut" id="cut" />
+			</p>
+			
+			<p>
+				<input type="button" id="update" value="update" />
+			</p>
+
+		</form>
+	</div>
+
+	<div id=responseText>
+	<h2>Response Text</h2>	</div>
+	
+	<!--chart will be drawn here-->
+	<div id="chart_div" style='position:relative'></div>
+
+</body>
+</html>f

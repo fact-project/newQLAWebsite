@@ -1,0 +1,56 @@
+<?php
+
+
+//adds license file to message
+  include "../license_file.php";
+  $license= license();
+
+  $license =  str_replace("\n", "\n#", $license);
+
+
+//sends rquested data to the  given e-mail and sends a copy to person in charge
+	$msg=  $_POST["msg"];
+  	$message=$license . $msg;
+	$email=$_POST["email"];
+	$name=$_POST["name_for_email"];
+	$uni=$_POST["uni"];
+  $motivation=$_POST["motivation"];
+
+//person in charge will recive copy of the message and will be displayed as sender 
+  $person_in_charge="leonie.reichert@stud-mail.uni-wuerzburg.de";
+  $person_in_charge_name="Leonie Reichert";
+
+//Header of the email
+  $header = "From: FACT Quick Look Analysis <$person_in_charge>\r\n" .
+      "Content-Type: text/plain; charset=UTF-8\r\n".
+    "Reply-To:  $person_in_charge_name <$person_in_charge>\r\n" .
+    'X-Mailer: PHP/' . phpversion();
+
+
+  $subject="FACT Quick Look Analysis Data";
+
+  mail($email, $subject, $message, $header);
+
+  //copy that will be send to person in charge
+  $msg_copy="#This message was send to ".$name." from ".$uni." at e-mail address ".$email." The Data will be used for : ".$motivation."\n".$message;
+  $subject_copy="QLA Data was downloaded";
+	
+  mail($person_in_charge, $subject_copy, $msg_copy, $header);
+
+
+
+  //writing the informatin that someone downloaded in a log file
+
+/*  error_reporting(E_ALL);
+  ini_set('display_errors',1);
+  $today = date('m/d/Y h:i:s a', time());
+  $log_text=$today."\t".$name."\t".$uni."\t".$email."\n";
+  $log_file=fopen("/var/www/html/newFactSite/data_downloaded.log", "a") or die("Unable to open file!"); //opens or creats new log file
+  fwrite($log_file, $log_text);
+  fclose($log_file);*/
+
+  //This response will be visible to the user after clicking on submit
+  $response= "The data was send to the e-mail address: ". $email;
+  echo $response; 
+
+?>
